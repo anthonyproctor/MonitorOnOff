@@ -1,0 +1,44 @@
+# Function to check if a screen is on or off
+function IsScreenOn($screenName) {
+    $screen = Get-WmiObject -Namespace root/wmi -Class WmiMonitorBasicDisplayParams | Where-Object { $_.InstanceName -eq $screenName }
+
+    if ($screen) {
+        return $screen.Active
+    }
+
+    return $false
+}
+
+# Replace "DISPLAY\DELL1234" with the actual instance name of the screen you want to check
+$screenNameToCheck = "DISPLAY\DELL1234"
+
+# Get the computer name
+$computerName = $env:COMPUTERNAME
+
+# Check if the screen is on or off
+if (IsScreenOn $screenNameToCheck) {
+    $status = "ON"
+} else {
+    $status = "OFF"
+}
+
+# Create the email content
+$emailSubject = "Screen Status Alert"
+$emailBody = "Computer Name: $computerName`r`nScreen Status: $status"
+
+# SMTP server settings
+$smtpServer = "smtp.example.com"
+$smtpPort = 587
+$smtpUsername = "your_username"
+$smtpPassword = "your_password"
+
+# Sender and recipient email addresses
+$senderEmail = "sender@example.com"
+$recipientEmail = "recipient@example.com"
+
+# Send the email
+Send-MailMessage -To $recipientEmail -From $senderEmail -Subject $emailSubject -Body $emailBody -SmtpServer $smtpServer -Port $smtpPort -UseSsl -Credential (New-Object System.Management.Automation.PSCredential ($smtpUsername, (ConvertTo-SecureString $smtpPassword -AsPlainText -Force))
+
+# Log the information to a file
+$logFilePath = "C:\Path\To\Your\Log\File.txt"
+Add-Content -Path $logFilePath -Value "$(Get-Date) - Computer Name: $computerName, Screen Status: $status"
